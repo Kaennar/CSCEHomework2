@@ -11,7 +11,7 @@
 #define STD_OUT 1
 
 int string_invert();
-
+void print_reverse(int i, char* str);
 int main(){
   // At somepoint there will get opt crap here
   
@@ -28,28 +28,29 @@ int string_invert(){
   scanf("%s",&str);
   printf("\n"); 
   // Invert the string
-  int i = -1;
-  pid_t pid = 0; 
-  int len = strlen(str);
-  while (i < len){
-    if (pid == 0){
-      pid = fork();
-      i += 1;       
-    }else{
-      break;
-    }
-  }
-  // We get a double at the end so we kill that one :)
-  if (pid != 0 && i == len){
-    kill(pid,SIGTERM);  
-  }
-  // Wait for the children to finish
-  while(wait(NULL) > 0);
-  write(1,&str[i],1);   
-  if (i == 0){
-    write(1,"\n",1);
-  }
-  kill(pid,SIGTERM);  
+  print_reverse(0,str);
+  
+}
 
+void print_reverse(int i, char* str){
+  pid_t pid = fork();
+  if (pid == 0 && i < strlen(str)){
+    // Recurse
+    print_reverse(i+1,str);
+    while (wait(NULL) > 0);
+    write(1,&str[i],1);
+    if (i == 0) {
+      write(1,"\n",1);
+      kill(pid,SIGTERM);
+      return;
+    }
+    // Wait for our children to die like the devils they are
+  }else if (pid == 0 ){
+    kill(pid,SIGTERM);
+  }else if (i >= strlen(str)){
+    kill(pid,SIGTERM);
+  }else{
+    return;
+  }
 }
 
